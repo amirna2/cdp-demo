@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="UTF8">
+  <head>
+    <%- include partials/head.ejs %>
+    <%- include partials/nav.ejs %>
+    	<script src="/stylesheets/tablefilter/tablefilter.js"></script>
+
+	  <title>DMS LITE</title>
+
+  </head>
+  <body>
+
+  	<div id="data"> 	
+	  	<div class="container-xxl">
+		    <div class="row">
+		      <div class="col-sm-12 main-section">
+				  <h4 id="main-text">Recent Data</h4>
+
+		      	<table class="table main-table">
+
+		      		<thead>
+		      			<th>DUCKID</th>
+		      			<th>TIMESTAMP</th>
+						<th>TOPIC</th>
+		      			<th>MESSAGE ID</th>
+		      			<th>PATH</th>
+		      			<th>PAYLOAD</th>
+		      			<th>HOPS</th>
+		      			<th>TYPE</th>
+		      		</thead>
+		      		<tbody class="padding-table">
+					<% something.forEach(function(duck) { %>
+		      			<tr>
+		      				<td><%= duck.duck_id %></td>
+		      				<td><%= duck.timestamp %></td>
+							<td><%= duck.topic %></td>
+		      				<td><%= duck.message_id %></td>
+		      				<td><%= duck.path %></td>
+		      				<td><%= duck.payload %></td>
+		      				<td><%= duck.hops %></td>
+		      				<td><%= duck.duck_type%></td>
+		      			</tr>
+					<% }); %>
+
+		      		</tbody>
+		      	</table>        
+		      </div>
+		  </div>
+	    </div>
+	</div>
+    <%- include partials/footer.ejs %>
+  </body>
+  <script>
+	  // function reloadThePage(){
+		 //  window.location.reload();
+	  // }
+	  // setInterval(reloadThePage,8000)
+
+	var tf = new TableFilter(document.querySelector('.main-table'), {
+        
+            filters_row_index: 1,
+            enable_checklist_reset_filter: false, 
+		state: {
+          types: ['hash'],
+          filters: true
+        },
+		//extensions:[{
+        //    name: 'sort'
+        //  }],
+		col_0: 'select',
+		col_2: 'select',
+		col_7: 'select'
+	});
+	tf.init();
+  </script>
+</html>
