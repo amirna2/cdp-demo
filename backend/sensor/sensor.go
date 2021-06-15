@@ -7,9 +7,10 @@ import (
 
 type Data struct {
 	gorm.Model
-	DateTime  string `json:"timestamp"`
+	DateTime  string
 	DeviceId  string `json:"DeviceID"`
 	MessageID string `json:"MessageID"`
+	Payload   string `json:"Payload"`
 	Path      string `json:"path"`
 	Hops      int    `json:"hops"`
 	DuckType  int    `json:"duckType"`

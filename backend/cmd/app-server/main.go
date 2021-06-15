@@ -5,6 +5,7 @@ import (
 	"backend/sensor"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -17,7 +18,14 @@ import (
 )
 
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	fmt.Printf("Message %s received on topic %s\n", msg.Payload(), msg.Topic())
+	sensorData := new(sensor.Data)
+	sensorData.DateTime = time.Now().Format("2006.01.02 15:04:05")
+	fmt.Printf("[%s] %s\n", sensorData.DateTime, msg.Payload())
+
+	json.Unmarshal(msg.Payload(), &sensorData)
+
+	db := database.DBConn
+	db.Create(&sensorData)
 }
 
 var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
@@ -41,7 +49,7 @@ func newTLSConfig() *tls.Config {
 
 func initDatabase() {
 	var err error
-	database.DBConn, err = gorm.Open("sqlite3", "books.db")
+	database.DBConn, err = gorm.Open("sqlite3", "data.db")
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -51,7 +59,7 @@ func initDatabase() {
 }
 
 func startMqttClient() {
-	fmt.Printf("Starting MQTT client")
+	fmt.Printf("Starting MQTT client\n")
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
@@ -84,33 +92,6 @@ func startMqttClient() {
 }
 
 func main() {
-	fmt.Printf("Starting MQTT client")
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-
-	// var broker = "tcp://test.mosquitto.org:1883"
-	var broker = "ssl://test.mosquitto.org:8883"
-
-	options := mqtt.NewClientOptions()
-	options.AddBroker(broker)
-	options.SetClientID("cdp-app-server")
-	options.SetDefaultPublishHandler(messagePubHandler)
-	options.OnConnect = connectHandler
-	options.OnConnectionLost = connectionLostHandler
-	options.SetTLSConfig(newTLSConfig())
-	options.SetKeepAlive(60 * 2 * time.Second)
-
-	client := mqtt.NewClient(options)
-	token := client.Connect()
-	if token.Wait() && token.Error() != nil {
-		panic(token.Error())
-	}
-
-	topic := "/test-mosquitto/status/json"
-	token = client.Subscribe(topic, 1, nil)
-	token.Wait()
-	fmt.Printf("Subscribed to topic %s\n", topic)
-	<-interrupt
-
-	client.Disconnect(100)
+	initDatabase()
+	startMqttClient()
 }
