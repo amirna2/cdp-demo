@@ -1,13 +1,13 @@
 package main
 
 import (
-	"backend/database"
-	"backend/sensor"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"mqtt-service/database"
+	"mqtt-service/sensor"
 	"os"
 	"os/signal"
 	"syscall"
@@ -92,6 +92,7 @@ func startMqttClient() {
 }
 
 func main() {
+	fmt.Printf("Hello\n")
 	initDatabase()
 	startMqttClient()
 }
