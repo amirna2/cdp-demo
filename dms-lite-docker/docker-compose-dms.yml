@@ -1,5 +1,5 @@
 #This Docker-compose is what ties all the containers together. 
-#This makes for brining up DMS Service easier
+#This makes for bringing up DMS Service easier
 version: "3.3"
 services:
   web:
@@ -11,10 +11,10 @@ services:
     volumes:
       - "${DATABASE_FILE}:/db"
 
-  wifi-writer:
-      build:
-        dockerfile: Dockerfile
-        context: ./Wifi-sql-writer
-      volumes:
-        - "${DATABASE_FILE}:/db"
+#  wifi-writer:
+#      build:
+#        dockerfile: Dockerfile
+#        context: ./Wifi-sql-writer
+#      volumes:
+#        - "${DATABASE_FILE}:/db"
           
