@@ -16,15 +16,23 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
+var client mqtt.Client
+
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	sensorData := new(sensor.ClusterData)
 	sensorData.TimeStamp = time.Now().Local()
 	fmt.Printf("[%s] %s\n", sensorData.TimeStamp, msg.Payload())
 
 	json.Unmarshal(msg.Payload(), &sensorData)
+	database.DBConn.Create(&sensorData)
 
-	db := database.DBConn
-	db.Create(&sensorData)
+	appData, err := json.Marshal(sensorData)
+	if err != nil {
+		fmt.Printf("Failed to create app data: %s\n", err.Error())
+	} else {
+		Publish(appData)
+	}
+
 }
 
 var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
@@ -63,7 +71,7 @@ func StartClient() {
 	options.SetTLSConfig(newTLSConfig())
 	options.SetKeepAlive(60 * 2 * time.Second)
 
-	client := mqtt.NewClient(options)
+	client = mqtt.NewClient(options)
 	token := client.Connect()
 	if token.Wait() && token.Error() != nil {
 		panic(token.Error())
@@ -76,5 +84,17 @@ func StartClient() {
 	<-interrupt
 
 	client.Disconnect(100)
+}
+
+func Publish(data []byte) {
+	if !client.IsConnected() {
+		fmt.Printf("Error. Mqtt client not connected.")
+		return
+	}
+	token := client.Publish("cdp-app-server/sensor", 2, false, data)
+	if token.Wait() && token.Error() != nil {
+		panic(token.Error())
+	}
+	fmt.Println("Published cdp-app-server/sensor topic")
 
 }
